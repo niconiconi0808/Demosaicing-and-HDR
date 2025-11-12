@@ -1,12 +1,13 @@
 # === 03/improve_luminosity.py ===
 import numpy as np
+import rawpy
 from pathlib import Path
 
 # 让 Python 找到上一级 02 模块（在 Main_Task 目录下运行可不需要这段）
 import sys, os
 # 把上一级的 02 文件夹加进搜索路径
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '02')))
-from demosaic import demosaic_image, save_16bit
+from demosaic import demosaic_image, save_16bit, bayer_pattern_from_raw
 
 
 def improve_luminosity_linear(rgb: np.ndarray, gamma=0.3,
@@ -35,11 +36,11 @@ if __name__ == "__main__":
     RAW_DIR = os.path.abspath(os.path.join(THIS_DIR, '..', '02'))
     raw_path = os.path.join(RAW_DIR, 'IMG_4782.CR3')
 
-    print("Reading:", raw_path, "exists:", os.path.exists(raw_path))  # 调试用
-    # raw_path = "IMG_4782.CR3"
-    pattern = "GRBG"   # ← 用第1题实际判断到的结果替换它
-    rgb_linear = demosaic_image(raw_path, pattern)
+    raw = rawpy.imread(raw_path)
+    pattern = bayer_pattern_from_raw(raw)
+    print("Detected Bayer pattern:", pattern)
 
+    rgb_linear = demosaic_image(raw_path, pattern)
     # ① γ 曲线版本
     rgb_gamma = improve_luminosity_linear(rgb_linear, gamma=0.3)
     save_16bit(rgb_gamma, "IMG_4782_lumi_gamma.png")
